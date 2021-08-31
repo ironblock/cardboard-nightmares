@@ -1,0 +1,17 @@
+{
+  "name": "cardboard-nightmares",
+  "version": "1.0.0",
+  "description": "You can never escape the cardboard",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mtg",
+    "magic",
+    "tabletop",
+    "cockatrice"
+  ],
+  "author": "Corey Vixie",
+  "license": "ISC"
+}
