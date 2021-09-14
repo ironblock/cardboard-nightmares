@@ -6,24 +6,41 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "type-check": "tsc --pretty --noEmit",
     "lint": "next lint",
-    "format": "next lint --fix"
+    "format": "next lint --fix",
+    "prepare": "husky install"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "yarn run type-check"
+    }
+  },
+  "lint-staged": {
+    "*.@(ts|tsx)": [
+      "yarn lint",
+      "yarn format"
+    ]
   },
   "dependencies": {
+    "@emotion/babel-plugin": "^11.3.0",
     "@emotion/core": "^0.13.1",
     "@emotion/provider": "^0.11.2",
     "@emotion/react": "^11.4.1",
     "@emotion/styled": "^11.3.0",
     "next": "11.1.2",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "typescript": "4.4.2"
   },
   "devDependencies": {
-    "@emotion/babel-plugin": "^11.3.0",
+    "@emotion/eslint-plugin": "^11.2.0",
     "@types/react": "17.0.19",
     "eslint": "7.32.0",
     "eslint-config-next": "11.1.2",
     "eslint-config-prettier": "^8.3.0",
-    "typescript": "4.4.2"
+    "husky": "^7.0.2",
+    "lint-staged": "^11.1.2"
   }
 }
