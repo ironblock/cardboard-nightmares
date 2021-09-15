@@ -1,17 +1,38 @@
 {
   "root": true,
-  "extends": ["next/core-web-vitals", "prettier"],
+  "extends": ["next/core-web-vitals", "prettier", "plugin:prettier/recommended"],
   "plugins": ["@emotion"],
   "rules": {
+    // GENERAL / PRETTIER
+    "semi": "error",
     "quotes": [
       "error",
       "double",
       { "avoidEscape": true, "allowTemplateLiterals": false }
     ],
+
+    // EMOTION
     "@emotion/jsx-import": "off",
     "@emotion/styled-import": "error",
     "@emotion/import-from-emotion": "error",
     "@emotion/no-vanilla": "error",
-    "@emotion/syntax-preference": ["warn", "string"]
+    "@emotion/syntax-preference": ["warn", "string"],
+
+    // IMPORT
+    "import/first": "error",
+    "import/no-named-as-default": "off",
+    "import/newline-after-import": "error",
+    "import/named": "off",
+    "import/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", "internal"],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc" /* sort in ascending order. Options: ['ignore', 'asc', 'desc'] */,
+          "caseInsensitive": false /* ignore case. Options: [true, false] */
+        }
+      }
+    ]
   }
 }
