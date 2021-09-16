@@ -24,11 +24,12 @@
     ]
   },
   "dependencies": {
+    "@babel/core": "^7.15.5",
     "@emotion/babel-plugin": "^11.3.0",
-    "@emotion/core": "^0.13.1",
-    "@emotion/provider": "^0.11.2",
+    "@emotion/eslint-plugin": "^11.2.0",
     "@emotion/react": "^11.4.1",
     "@emotion/styled": "^11.3.0",
+    "babel-loader": "^8.2.2",
     "keyrune": "andrewgioia/keyrune#semver:^3.8.3",
     "next": "11.1.2",
     "react": "17.0.2",
@@ -37,7 +38,6 @@
     "typescript": "4.4.2"
   },
   "devDependencies": {
-    "@emotion/eslint-plugin": "^11.2.0",
     "@types/react": "17.0.19",
     "eslint": "7.32.0",
     "eslint-config-next": "11.1.2",
@@ -47,6 +47,11 @@
     "husky": "^7.0.2",
     "lint-staged": "^11.1.2",
     "mtggraphql": "^1.0.2",
-    "prettier": "2.4.0"
+    "prettier": "^2.4.0"
+  },
+  "engines": {
+    "node": ">=14",
+    "npm": ">=7",
+    "yarn": "YARN IS NOT SUPPORTED - PLEASE INSTALL NPM 7"
   }
 }
