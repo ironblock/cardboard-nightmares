@@ -9,7 +9,9 @@
     "type-check": "tsc --pretty --noEmit",
     "lint": "next lint",
     "format": "next lint --fix",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
   },
   "husky": {
     "hooks": {
@@ -24,12 +26,10 @@
     ]
   },
   "dependencies": {
-    "@babel/core": "^7.15.5",
     "@emotion/babel-plugin": "^11.3.0",
     "@emotion/eslint-plugin": "^11.2.0",
     "@emotion/react": "^11.4.1",
     "@emotion/styled": "^11.3.0",
-    "babel-loader": "^8.2.2",
     "keyrune": "andrewgioia/keyrune#semver:^3.8.3",
     "next": "11.1.2",
     "react": "17.0.2",
@@ -38,7 +38,14 @@
     "typescript": "4.4.2"
   },
   "devDependencies": {
+    "@storybook/addon-actions": "^6.3.8",
+    "@storybook/addon-essentials": "^6.3.8",
+    "@storybook/addon-links": "^6.3.8",
+    "@storybook/builder-webpack5": "^6.3.8",
+    "@storybook/manager-webpack5": "^6.3.8",
+    "@storybook/react": "^6.3.8",
     "@types/react": "17.0.19",
+    "dotenv-webpack": "^7.0.3",
     "eslint": "7.32.0",
     "eslint-config-next": "11.1.2",
     "eslint-config-prettier": "^8.3.0",
@@ -47,7 +54,9 @@
     "husky": "^7.0.2",
     "lint-staged": "^11.1.2",
     "mtggraphql": "^1.0.2",
-    "prettier": "^2.4.0"
+    "prettier": "^2.4.0",
+    "terser-webpack-plugin": "^5.2.4",
+    "webpack": "^5.53.0"
   },
   "engines": {
     "node": ">=14",

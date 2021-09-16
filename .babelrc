@@ -1,4 +1,14 @@
 {
-  "presets": ["next/babel"],
+  "presets": [
+    [
+      "next/babel",
+      {
+        "preset-env": {
+          "loose": true,
+          "shippedProposals": true
+        }
+      }
+    ]
+  ],
   "plugins": ["@emotion"]
 }
