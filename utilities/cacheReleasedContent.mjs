@@ -1,8 +1,10 @@
 #!/usr/bin/node
 import fs from "fs";
 import https from "https";
+import util from "util";
 
 import cliProgress from "cli-progress";
+import { ESLint } from "eslint";
 
 console.time("Finished in");
 console.log("Updating MTGJSON resource files...\n");
@@ -21,6 +23,7 @@ const oneDay =
   60 /* seconds */ *
   60 /* minutes */ *
   24; /* hours */
+const yesterday = today - oneDay;
 
 const multibar = new cliProgress.MultiBar(
   {
@@ -38,13 +41,15 @@ const bars = fileNames.reduce((output, key) => {
 
 const downloads = await Promise.all(
   fileNames.map(async (key) => {
-    const filePath = `${cacheDir}/${key}`;
-    let content = "";
+    const baseName = key.replace(/\.json$/, "");
+    const jsonFilePath = `${cacheDir}/${baseName}.json`;
+    const tsFilePath = `${cacheDir}/${baseName}.ts`;
 
     try {
-      const { mtimeMs } = await fs.promises.lstat(filePath);
+      const jsonStats = await fs.promises.lstat(jsonFilePath);
+      const tsStats = await fs.promises.lstat(tsFilePath);
 
-      if (today - oneDay < mtimeMs) {
+      if (yesterday < jsonStats.mtimeMs || yesterday < tsStats.mtimeMs) {
         return bars[key].update(100, { key });
       }
     } catch (error) {
@@ -99,11 +104,13 @@ const downloads = await Promise.all(
         });
       });
 
-      // console.log(filePath);
-      // const fileHandle = await fs.promises.open(filePath);
-      // await fs.promises.writeFile(fileHandle, JSON.stringify(content, null, 2));
-      await fs.promises.writeFile(filePath, JSON.stringify(content, null, 2));
-      // await fileHandle.close();
+      const formattedJson = JSON.stringify(content, null, 2);
+      const formattedTs = `export const ${baseName} = ${util.inspect(
+        content
+      )} as const;\n\nexport default ${baseName};\n`;
+
+      await fs.promises.writeFile(jsonFilePath, formattedJson);
+      await fs.promises.writeFile(tsFilePath, formattedTs);
 
       return true;
     }
@@ -111,6 +118,10 @@ const downloads = await Promise.all(
     return false;
   })
 );
+
+const eslint = new ESLint({ fix: true });
+const results = await eslint.lintFiles([`${cacheDir}/**`]);
+await ESLint.outputFixes(results);
 
 setTimeout(() => {
   if (downloads.includes(false)) {

@@ -3,15 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "cache:clean": "rm -rf ./cache",
+    "cache:data": "node utilities/cacheReleasedContent.mjs",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "types:check": "tsc --pretty --noEmit",
+    "storybook:dev": "start-storybook -p 6006",
+    "storybook:build": "build-storybook",
+    "prepare": "husky install",
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "type-check": "tsc --pretty --noEmit",
-    "lint": "next lint",
-    "format": "next lint --fix",
-    "prepare": "husky install",
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "start": "next start"
   },
   "husky": {
     "hooks": {
@@ -58,6 +60,7 @@
     "mtggraphql": "^1.0.2",
     "prettier": "^2.4.0",
     "terser-webpack-plugin": "^5.2.4",
+    "type-fest": "^0.13.1",
     "webpack": "^5.53.0"
   },
   "engines": {
