@@ -1,7 +1,6 @@
 #!/usr/bin/node
 import fs from "fs";
 import https from "https";
-import util from "util";
 
 import cliProgress from "cli-progress";
 import { ESLint } from "eslint";
@@ -105,9 +104,7 @@ const downloads = await Promise.all(
       });
 
       const formattedJson = JSON.stringify(content, null, 2);
-      const formattedTs = `export const ${baseName} = ${util.inspect(
-        content
-      )} as const;\n\nexport default ${baseName};\n`;
+      const formattedTs = `export const ${baseName} = ${formattedJson} as const; export default ${baseName};`;
 
       await fs.promises.writeFile(jsonFilePath, formattedJson);
       await fs.promises.writeFile(tsFilePath, formattedTs);
