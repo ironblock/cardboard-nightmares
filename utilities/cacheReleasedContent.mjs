@@ -12,6 +12,7 @@ const cacheDir = new URL("../cache", import.meta.url).pathname;
 await fs.mkdirSync(cacheDir, { recursive: true });
 
 const files = {
+  "CardTypes.json": "https://mtgjson.com/api/v5/CardTypes.json",
   "SetList.json": "https://mtgjson.com/api/v5/SetList.json",
   "EnumValues.json": "https://mtgjson.com/api/v5/EnumValues.json",
 };
