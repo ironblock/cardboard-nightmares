@@ -10,7 +10,7 @@
     "types:check": "tsc --pretty --noEmit",
     "storybook:dev": "start-storybook -p 6006",
     "storybook:build": "build-storybook",
-    "prepare": "husky install",
+    "prepare": "husky install && npm run cache:data",
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
@@ -60,7 +60,7 @@
     "mtggraphql": "^1.0.2",
     "prettier": "^2.4.0",
     "terser-webpack-plugin": "^5.2.4",
-    "type-fest": "^0.13.1",
+    "type-fest": "^2.3.3",
     "webpack": "^5.53.0"
   },
   "engines": {

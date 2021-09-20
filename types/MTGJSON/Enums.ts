@@ -1,8 +1,6 @@
 import EnumValues from "../../cache/EnumValues";
-import SetList from "../../cache/SetList";
 
 const { card, deck, foreignData, keywords, set } = EnumValues.data;
-const AllSets = SetList.data;
 
 /**
  * CARD
@@ -64,9 +62,3 @@ export type KeywordActions = typeof keywords.keywordActions[number];
  * SET
  */
 export type SetType = typeof set.type[number];
-export type SetCode = typeof AllSets[number]["code"];
-export type Block = typeof AllSets[number]["block"];
-export type KeyruneCode = typeof AllSets[number]["keyruneCode"];
-export type Name = typeof AllSets[number]["name"];
-export type McmName = typeof AllSets[number]["mcmName"];
-export type MtgoCode = typeof AllSets[number]["mtgoCode"];
