@@ -2,6 +2,22 @@ import EnumValues from "../../cache/EnumValues";
 
 const { card, deck, foreignData, keywords, set } = EnumValues.data;
 
+export type PlayFormat =
+  | "brawl"
+  | "commander"
+  | "duel"
+  | "future"
+  | "frontier"
+  | "historic"
+  | "legacy"
+  | "modern"
+  | "pauper"
+  | "penny"
+  | "pioneer"
+  | "standard"
+  | "vintage";
+export type Legality = "Legal" | "Banned" | "Restricted";
+
 /**
  * CARD
  */
@@ -21,25 +37,6 @@ export type Subtypes = typeof card.subtypes[number];
 export type Supertypes = typeof card.supertypes[number];
 export type Types = typeof card.types[number];
 export type Watermark = typeof card.watermark[number];
-
-export interface Card {
-  availability: Availability;
-  borderColor: BorderColor;
-  colorIdentity: ColorIdentity;
-  colorIndicator: ColorIndicator;
-  colors: Colors;
-  duelDeck: DuelDeck;
-  frameEffects: FrameEffects;
-  frameVersion: FrameVersion;
-  layout: Layout;
-  promoTypes: PromoTypes;
-  rarity: Rarity;
-  side: Side;
-  subtypes: Subtypes;
-  supertypes: Supertypes;
-  types: Types;
-  watermark: Watermark;
-}
 
 /**
  * DECK
