@@ -1,4 +1,4 @@
-import EnumValues from "../../cache/EnumValues";
+import EnumValues from "../../cache/MTGJSON/EnumValues";
 
 const { card, deck, foreignData, keywords, set } = EnumValues.data;
 

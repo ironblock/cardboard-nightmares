@@ -8,7 +8,7 @@ import { ESLint } from "eslint";
 console.time("Finished in");
 console.log("Updating MTGJSON resource files...\n");
 
-const cacheDir = new URL("../cache", import.meta.url).pathname;
+const cacheDir = new URL("../cache/MTGJSON", import.meta.url).pathname;
 await fs.mkdirSync(cacheDir, { recursive: true });
 
 const files = {

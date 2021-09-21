@@ -1,4 +1,4 @@
-import type SetList from "../../cache/SetList";
+import type SetList from "../../cache/MTGJSON/SetList";
 import type { SetType } from "./Enums";
 
 export interface SetShape {
