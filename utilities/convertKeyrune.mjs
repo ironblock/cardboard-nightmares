@@ -1,5 +1,6 @@
 #!/usr/bin/node
 import fs from "fs";
+import path from "path";
 
 import svgrCore from "@svgr/core";
 import { ESLint } from "eslint";
@@ -9,15 +10,19 @@ const svgr = svgrCore.default;
 console.time("Finished in");
 console.log("Converting Keyrune SVG files...\n");
 
+const prefix = "Symbol";
+const defaultSet = "BCORE";
+
 const cacheDir = new URL("../cache/", import.meta.url);
+const nodeModulesDir = new URL("../node_modules/", import.meta.url);
 const directory = {
-  MTGJSON: new URL("./MTGJSON/", cacheDir),
-  SVGR: new URL("./SVGR/", cacheDir),
-  Keyrune: new URL("../node_modules/keyrune/svg/", import.meta.url),
+  MTGJSON: path.join(cacheDir.pathname, "./MTGJSON/"),
+  SVGR: path.join(cacheDir.pathname, "./SVGR/"),
+  Keyrune: path.join(nodeModulesDir.pathname, "./keyrune/svg/"),
 };
 
 const SetList = JSON.parse(
-  fs.readFileSync(new URL("./SetList.json", directory.MTGJSON))
+  fs.readFileSync(path.join(directory.MTGJSON, "./SetList.json"))
 );
 
 // Add "BCORE" as a special case
@@ -39,40 +44,105 @@ fs.mkdirSync(directory.SVGR, { recursive: true });
 const options = {
   typescript: true,
   memo: true,
+  ref: true,
+};
+
+const updateMap = (map, { keyruneCode, name, code }) =>
+  map.set(
+    keyruneCode,
+    new Set([{ keyruneCode, name, code }, ...(map.get(keyruneCode) ?? [])])
+  );
+const wrap = (s, w) =>
+  s.replace(new RegExp(`(?![^\\n]{1,${w}}$)([^\\n]{1,${w}})\\s`, "g"), "$1\n");
+
+const formatCommentHeader = (title, comment) => {
+  const header = ["", "/**", ` * ${title}`];
+  if (comment) {
+    header.push(
+      ...wrap(comment, 75)
+        .split("\n")
+        .map((line) => ` * ${line}`)
+    );
+  }
+
+  header.push(" */");
+  return header.flat().join("\n");
 };
 
 const formatName = ({ keyruneCode, name, code }) =>
   `${
-    keyruneCode && keyruneCode !== "DEFAULT" ? `${keyruneCode}: ` : ""
+    keyruneCode && keyruneCode !== defaultSet ? `${keyruneCode}: ` : ""
   }"${name} (${code})"`;
 
+const formatExports = ([primaryKey, sets]) => {
+  const comments = [`${primaryKey}:`];
+  const toExport = new Set();
+  let paddingCommentsEnd;
+  let joinComments;
+  let paddingExportStart;
+  let paddingExportEnd;
+  let joinExports;
+
+  sets.forEach(({ code, keyruneCode, name }) => {
+    comments.push(formatName({ name, code }));
+    toExport.add(code);
+  });
+
+  if (comments.length > 2) {
+    joinComments = "\n * ";
+    paddingCommentsEnd = "\n";
+  } else {
+    joinComments = " ";
+    paddingCommentsEnd = "";
+  }
+
+  if (toExport.size > 2) {
+    paddingExportStart = "\n  ";
+    joinExports = ",\n  ";
+    paddingExportEnd = ",\n";
+  } else {
+    paddingExportStart = " ";
+    joinExports = ", ";
+    paddingExportEnd = " ";
+  }
+
+  return [
+    "",
+    `/**${joinComments}${comments.join(joinComments)}${paddingCommentsEnd} */`,
+    `export {${paddingExportStart}${Array.from(toExport)
+      .map((code) => `default as ${prefix}${code}`)
+      .join(joinExports)}${paddingExportEnd}} from "./${primaryKey}";`,
+  ].join("\n");
+};
 const defaultCodes = new Map();
 const missingCodes = new Map();
 const foundCodes = new Map();
 
-await Promise.all(
+await Promise.allSettled(
   SetList.data.map(async (set) => {
     const { keyruneCode, code, name } = set;
-    const keyruneSourcePath = new URL(
-      `${keyruneCode.toLowerCase()}.svg`,
-      directory.Keyrune
+    const keyruneSourcePath = path.join(
+      directory.Keyrune,
+      `${keyruneCode.toLowerCase()}.svg`
     );
 
     try {
       const jsonStats = await fs.promises.lstat(keyruneSourcePath);
     } catch (error) {
       if (keyruneCode === "DEFAULT") {
-        defaultCodes.set(code, { keyruneCode, name, code });
+        updateMap(defaultCodes, { ...set, keyruneCode: defaultSet });
       } else {
-        missingCodes.set(keyruneCode, { keyruneCode, name, code });
+        updateMap(missingCodes, { ...set, keyruneCode: defaultSet });
       }
+
+      // Nothing to convert
       return null;
     }
 
     try {
-      const svgOutputPath = new URL(
-        `${keyruneCode.toUpperCase()}.tsx`,
-        directory.SVGR
+      const svgOutputPath = path.join(
+        directory.SVGR,
+        `${keyruneCode.toUpperCase()}.tsx`
       );
       const svgCode = await fs.promises.readFile(keyruneSourcePath);
 
@@ -81,59 +151,68 @@ await Promise.all(
       });
 
       await fs.promises.writeFile(svgOutputPath, component);
-      foundCodes.set(keyruneCode, { keyruneCode, name, code });
+      updateMap(foundCodes, set);
     } catch (error) {
-      console.error(error);
-      missingCodes.set(keyruneCode, { keyruneCode, name, code });
+      updateMap(missingCodes, { ...set, keyruneCode: defaultSet });
     }
   })
 );
 
-let indexFile = `/** GENERATED FILE! DO NOT EDIT! */
+let finalSize = 0;
 
-/**
- * KEYRUNE CODES
- */
-${Array.from(foundCodes.values())
-  .map(
-    ({ keyruneCode, name, code }) => `
-/** ${formatName({ keyruneCode, name, code })} */
-export { ${
-      keyruneCode !== code
-        ? `default as SVG${keyruneCode}, default as SVG${code}`
-        : `default as SVG${keyruneCode}`
-    } } from "./${keyruneCode}";`
-  )
-  .join("")}
+[foundCodes, defaultCodes, missingCodes].forEach((map) => {
+  for (const set of map.values()) {
+    finalSize += set.size;
+  }
+});
 
-/**
- * DEFAULT
- */
-export { default as SVGDEFAULT } from "./BCORE";
-`;
+if (finalSize < SetList.data.length) {
+  const setsNotOutput = [];
+
+  SetList.data.forEach((set) => {
+    if (
+      !foundCodes.has(set.code) &&
+      !defaultCodes.has(set.code) &&
+      !missingCodes.has(set.code)
+    ) {
+      setsNotOutput.push(formatName(set));
+    }
+  });
+  console.error(
+    `SetList.json contains ${SetList.data.length} sets, but only ${finalSize} files were output!`
+  );
+  console.error(
+    ["The following sets are missing:", ...setsNotOutput].join("\n")
+  );
+  throw new Error("Fatal: Did not output all sets");
+}
+
+const indexFile = [
+  "/** GENERATED FILE! DO NOT EDIT! */",
+  "",
+  `export const PREFIX = "${prefix}";`,
+  formatCommentHeader("KEYRUNE CODES"),
+  `${Array.from(foundCodes.entries()).map(formatExports).join("")}`,
+];
 
 if (defaultCodes.size) {
   console.info(
     [
       'MTJSON specified the following sets should use "DEFAULT" Keyrune icons.',
       'These will use "Blank Core Set":',
-      ...Array.from(defaultCodes.values()).map(
-        ({ keyruneCode, name, code }) =>
-          `  - ${formatName({ keyruneCode, name, code })}`
+      ...Array.from(defaultCodes.get(defaultSet).entries()).map(
+        ([primaryKey, set]) => `  - ${formatName(set)}`
       ),
       "\n",
     ].join("\n")
   );
 
-  indexFile += `export {${Array.from(defaultCodes.values())
-    .map(
-      ({ keyruneCode, name, code }) => `
-  /** ${formatName({ keyruneCode, name, code })} */
-  default as SVG${code},`
-    )
-    .join("")}
-} from "./BCORE";
-`;
+  indexFile.push(
+    ...[
+      formatCommentHeader("DEFAULT"),
+      Array.from(defaultCodes.entries()).map(formatExports).join(""),
+    ]
+  );
 }
 
 if (missingCodes.size) {
@@ -141,31 +220,32 @@ if (missingCodes.size) {
     [
       "MTGJSON specified the following non-existent Keyrune codes.",
       'These will fall back to "Blank Core Set":',
-      ...Array.from(missingCodes.values()).map(
-        ({ keyruneCode, name, code }) =>
-          `  - ${formatName({ keyruneCode, name, code })}`
+      ...Array.from(missingCodes.entries()).map(([primaryKey, sets]) =>
+        Array.from(sets).map((set) => `  - ${formatName(set)}`)
       ),
       "\n",
-    ].join("\n")
+    ]
+      .flat()
+      .join("\n")
   );
 
-  indexFile += `
-/**
- * MISSING CODES
- * These codes were specified by MTGJSON, but not actually found in the
- * Keyrune repository.
- */
-export {${Array.from(missingCodes.values())
-    .map(
-      ({ keyruneCode, name, code }) => `
-  /** ${formatName({ keyruneCode, name, code })} */
-  default as SVG${code},`
-    )
-    .join("")}
-} from "./BCORE";
-`;
+  indexFile.push(
+    ...[
+      formatCommentHeader(
+        "MISSING CODES",
+        "These codes were specified by MTGJSON, but not actually found in the Keyrune repository."
+      ),
+      Array.from(missingCodes.entries()).map(formatExports).join(""),
+    ]
+  );
 }
 
-await fs.promises.writeFile(new URL("index.tsx", directory.SVGR), indexFile);
+// Add last newline
+indexFile.push("");
 
+const indexPath = path.join(directory.SVGR, "index.tsx");
+
+await fs.promises.writeFile(indexPath, indexFile.join("\n"));
+
+console.time("Finished in");
 process.exit();
