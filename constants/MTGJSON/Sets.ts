@@ -1,4 +1,4 @@
-import SetList from "../../cache/SetList";
+import SetList from "../../cache/MTGJSON/SetList";
 import { SetType } from "../../types/MTGJSON/Enums";
 import { KeyruneCode, SetCode, SetShape } from "../../types/MTGJSON/Sets";
 
