@@ -5,6 +5,8 @@ import path from "path";
 import svgrCore from "@svgr/core";
 import { ESLint } from "eslint";
 
+import templateWithGradient from "./SVGR/templateWithGradient.mjs";
+
 const svgr = svgrCore.default;
 
 console.time("Finished in");
@@ -13,20 +15,24 @@ console.log("Converting Keyrune SVG files...\n");
 const prefix = "Symbol";
 const defaultSet = "BCORE";
 
-const cacheDir = new URL("../cache/", import.meta.url);
-const nodeModulesDir = new URL("../node_modules/", import.meta.url);
-const directory = {
-  MTGJSON: path.join(cacheDir.pathname, "./MTGJSON/"),
-  SVGR: path.join(cacheDir.pathname, "./SVGR/"),
-  Keyrune: path.join(nodeModulesDir.pathname, "./keyrune/svg/"),
+const repositoryRoot = new URL("../", import.meta.url).pathname;
+
+const absolutePaths = {
+  MTGJSON: path.join(repositoryRoot, "./cache/MTGJSON/"),
+  SVGR: path.join(repositoryRoot, "./cache/SVGR/"),
+  Keyrune: path.join(repositoryRoot, "./node_modules/keyrune/svg/"),
 };
 
 const SetList = JSON.parse(
-  fs.readFileSync(path.join(directory.MTGJSON, "./SetList.json"))
+  fs.readFileSync(path.join(absolutePaths.MTGJSON, "./SetList.json"))
 );
 
+const AllSets = SetList.data;
+// const LimitedSets = SetList.data.slice(0, 3);
+// const AllSets = LimitedSets;
+
 // Add "BCORE" as a special case
-SetList.data.unshift({
+AllSets.unshift({
   baseSetSize: 0,
   code: "BCORE",
   isFoilOnly: false,
@@ -39,12 +45,14 @@ SetList.data.unshift({
   type: "promo",
 });
 
-fs.mkdirSync(directory.SVGR, { recursive: true });
+fs.mkdirSync(absolutePaths.SVGR, { recursive: true });
 
 const options = {
   typescript: true,
   memo: true,
   ref: true,
+  plugins: ["@svgr/plugin-svgo", "@svgr/plugin-jsx", "@svgr/plugin-prettier"],
+  template: templateWithGradient,
 };
 
 const updateMap = (map, { keyruneCode, name, code }) =>
@@ -119,10 +127,10 @@ const missingCodes = new Map();
 const foundCodes = new Map();
 
 await Promise.allSettled(
-  SetList.data.map(async (set) => {
+  AllSets.map(async (set) => {
     const { keyruneCode, code, name } = set;
     const keyruneSourcePath = path.join(
-      directory.Keyrune,
+      absolutePaths.Keyrune,
       `${keyruneCode.toLowerCase()}.svg`
     );
 
@@ -141,7 +149,7 @@ await Promise.allSettled(
 
     try {
       const svgOutputPath = path.join(
-        directory.SVGR,
+        absolutePaths.SVGR,
         `${keyruneCode.toUpperCase()}.tsx`
       );
       const svgCode = await fs.promises.readFile(keyruneSourcePath);
@@ -166,10 +174,10 @@ let finalSize = 0;
   }
 });
 
-if (finalSize < SetList.data.length) {
+if (finalSize < AllSets.length) {
   const setsNotOutput = [];
 
-  SetList.data.forEach((set) => {
+  AllSets.forEach((set) => {
     if (
       !foundCodes.has(set.code) &&
       !defaultCodes.has(set.code) &&
@@ -179,7 +187,7 @@ if (finalSize < SetList.data.length) {
     }
   });
   console.error(
-    `SetList.json contains ${SetList.data.length} sets, but only ${finalSize} files were output!`
+    `SetList.json contains ${AllSets.length} sets, but only ${finalSize} files were output!`
   );
   console.error(
     ["The following sets are missing:", ...setsNotOutput].join("\n")
@@ -243,7 +251,7 @@ if (missingCodes.size) {
 // Add last newline
 indexFile.push("");
 
-const indexPath = path.join(directory.SVGR, "index.tsx");
+const indexPath = path.join(absolutePaths.SVGR, "index.tsx");
 
 await fs.promises.writeFile(indexPath, indexFile.join("\n"));
 
