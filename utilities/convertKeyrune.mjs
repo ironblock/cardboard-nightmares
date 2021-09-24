@@ -57,6 +57,21 @@ const options = {
   template: templateWithGradient,
 };
 
+const sanitize = (string) => string.replace(/-|_/gi, "");
+
+const writeSVGR = async (keyruneCode) => {
+  const svgOutputPath = path.join(absolutePaths.SVGR, `${keyruneCode}.tsx`);
+  const svgInputPath = path.join(absolutePaths.Keyrune, `${keyruneCode}.svg`);
+
+  const svgCode = await fs.promises.readFile(svgInputPath);
+
+  const component = await svgr(svgCode, options, {
+    componentName: `${prefixKeyrune}${sanitize(keyruneCode)}`,
+  });
+
+  await fs.promises.writeFile(svgOutputPath, component);
+};
+
 const updateMap = (map, { keyruneCode, name, code }) =>
   map.set(
     keyruneCode,
@@ -93,7 +108,7 @@ const formatExports = ([primaryKey, sets]) => {
   let paddingExportEnd;
   let joinExports;
 
-  sets.forEach(({ code, keyruneCode, name }) => {
+  sets.forEach(({ code, name }) => {
     comments.push(formatName({ name, code }));
     toExport.add(code);
   });
@@ -129,25 +144,22 @@ const missingCodes = new Map();
 const foundCodes = new Map();
 
 const allFiles = await fs.promises.readdir(absolutePaths.Keyrune);
-
-const allKeyrune = new Set(allFiles.map((name) => path.basename(name, ".svg")));
+const allKeyrune = new Set(
+  allFiles.map((name) => path.basename(name, ".svg").toUpperCase())
+);
 const unusedKeyrune = new Set(allKeyrune);
-const hasRarityColors = new Set();
-const hasMythicRare = new Set();
+const noRarityColors = new Set();
+const noMythicRare = new Set();
 
 await Promise.allSettled(
   AllSets.map(async (set) => {
-    const { keyruneCode, code, name } = set;
-    const keyruneBaseFileName = keyruneCode.toLowerCase();
+    const { keyruneCode } = set;
 
-    if (
-      !set.releaseDate ||
-      set.releaseDate >= parameters.mythicRareIntroduced
-    ) {
-      hasMythicRare.add(set.code);
-      hasRarityColors.add(set.code);
-    } else if (set.releaseDate >= parameters.rarityColorsIntroduced) {
-      hasRarityColors.add(set.code);
+    if (!set.releaseDate || set.releaseDate < parameters.mythicRareIntroduced) {
+      noMythicRare.add(set.code);
+      noRarityColors.add(set.code);
+    } else if (set.releaseDate < parameters.rarityColorsIntroduced) {
+      noRarityColors.add(set.code);
     }
 
     if (keyruneCode === "DEFAULT") {
@@ -156,27 +168,19 @@ await Promise.allSettled(
       return null;
     }
 
-    if (allKeyrune.has(keyruneBaseFileName)) {
+    if (allKeyrune.has(keyruneCode)) {
       try {
-        const svgOutputPath = path.join(
-          absolutePaths.SVGR,
-          `${keyruneCode.toUpperCase()}.tsx`
-        );
-        const svgCode = await fs.promises.readFile(
-          path.join(absolutePaths.Keyrune, `${keyruneBaseFilename}.svg`)
-        );
+        writeSVGR(keyruneCode);
 
-        const component = await svgr(svgCode, options, {
-          componentName: `Keyrune${keyruneCode}`,
-        });
+        unusedKeyrune.delete(keyruneCode);
 
-        await fs.promises.writeFile(svgOutputPath, component);
-        unusedKeyrune.remove(keyruneCode);
-        updateMap(foundCodes, set);
+        return updateMap(foundCodes, set);
       } catch (error) {
-        updateMap(missingCodes, { ...set, keyruneCode: defaultSet });
+        console.error(error);
       }
     }
+
+    return updateMap(missingCodes, { ...set, keyruneCode: defaultSet });
   })
 );
 
@@ -214,16 +218,16 @@ const indexFile = [
   "",
   `export const PREFIX = "${prefixDefault}";`,
   "",
-  `export const hasRarityColors = ${JSON.stringify(
-    Array.from(hasRarityColors),
+  `export const noRarityColors = new Set(${JSON.stringify(
+    Array.from(noRarityColors),
     null,
     2
-  )};\n`,
-  `export const hasMythicRare = ${JSON.stringify(
-    Array.from(hasMythicRare),
+  )});\n`,
+  `export const noMythicRare = new Set(${JSON.stringify(
+    Array.from(noMythicRare),
     null,
     2
-  )};\n`,
+  )});\n`,
   formatCommentHeader("KEYRUNE CODES"),
   `${Array.from(foundCodes.entries()).map(formatExports).join("")}`,
 ];
@@ -231,7 +235,9 @@ const indexFile = [
 if (defaultCodes.size) {
   console.info(
     [
-      'MTJSON specified the following sets should use "DEFAULT" Keyrune icons.',
+      `MTJSON specified the following ${
+        defaultCodes.size === 1 ? "set" : defaultCodes.size + " sets"
+      } should use "DEFAULT" Keyrune icons.`,
       'These will use "Blank Core Set":',
       ...Array.from(defaultCodes.get(defaultSet).entries()).map(
         ([primaryKey, set]) => `  - ${formatName(set)}`
@@ -251,7 +257,11 @@ if (defaultCodes.size) {
 if (missingCodes.size) {
   console.warn(
     [
-      "MTGJSON specified the following non-existent Keyrune codes.",
+      `MTGJSON specified the following ${
+        missingCodes.size === 1
+          ? "non-existent Keyrune code."
+          : missingCodes.size + "non-existent Keyrune codes."
+      }`,
       'These will fall back to "Blank Core Set":',
       ...Array.from(missingCodes.entries()).map(([primaryKey, sets]) =>
         Array.from(sets).map((set) => `  - ${formatName(set)}`)
@@ -273,13 +283,19 @@ if (missingCodes.size) {
   );
 }
 
-if (unusedKeyrune.size()) {
+if (unusedKeyrune.size) {
   const unused = Array.from(unusedKeyrune);
 
+  const results = await Promise.allSettled(unused.map(writeSVGR));
+  console.log(results);
   console.warn(
     [
-      "The following Keyrune codes were not referenced by MTGJSON.",
-      `They will be exported with the "${prefixKeyrune}" prefix:`,
+      `${
+        unusedKeyrune.size === "1"
+          ? "A Keyrune code was"
+          : unusedKeyrune.size + " Keyrune codes were"
+      } not referenced by MTGJSON.`,
+      `These will be exported with the "${prefixKeyrune}" prefix:`,
       ...unused.map((name) => ` - ${name}`),
       "\n",
     ].join("\n")
@@ -293,7 +309,9 @@ if (unusedKeyrune.size()) {
       ),
       ...unused.map(
         (name) =>
-          `export { default as ${prefixKeyrune + name} } from "${name}.svg";`
+          `export { default as ${
+            prefixKeyrune + sanitize(name)
+          } } from "./${name}";`
       ),
     ]
   );
