@@ -30,23 +30,16 @@ const singleSet: TemplateConfig = {
   ),
 };
 
-const TemplateMultiple: ComponentStory<typeof SetSymbol> = (args) => (
-  <>
-    <RarityGradientSVG />
-    <SetSymbol {...args} />
-  </>
-);
-
-export const Basic = TemplateSingleSet.bind({});
+export const Basic = singleSet.template.bind({});
 Basic.args = {
   set: "INV",
   rarity: "common",
 };
 
-export const Rarities = TemplateSingleSet.bind({});
-Rarities.args = {
-  set: "STH",
-  rarity: "common",
+export const AllRarities = singleSet.template.bind({});
+AllRarities.storyName = "All Rarities";
+AllRarities.args = {
+  set: "STX",
 };
 
 // export const Secondary = Template.bind({});
