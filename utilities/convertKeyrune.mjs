@@ -5,6 +5,7 @@ import path from "path";
 import svgrCore from "@svgr/core";
 import { ESLint } from "eslint";
 
+import parameters from "./SVGR/parameters.mjs";
 import templateWithGradient from "./SVGR/templateWithGradient.mjs";
 
 const svgr = svgrCore.default;
@@ -12,7 +13,8 @@ const svgr = svgrCore.default;
 console.time("Finished in");
 console.log("Converting Keyrune SVG files...\n");
 
-const prefix = "Symbol";
+const prefixDefault = "Symbol";
+const prefixKeyrune = "Keyrune";
 const defaultSet = "BCORE";
 
 const repositoryRoot = new URL("../", import.meta.url).pathname;
@@ -118,7 +120,7 @@ const formatExports = ([primaryKey, sets]) => {
     "",
     `/**${joinComments}${comments.join(joinComments)}${paddingCommentsEnd} */`,
     `export {${paddingExportStart}${Array.from(toExport)
-      .map((code) => `default as ${prefix}${code}`)
+      .map((code) => `default as ${prefixDefault}${code}`)
       .join(joinExports)}${paddingExportEnd}} from "./${primaryKey}";`,
   ].join("\n");
 };
@@ -126,42 +128,54 @@ const defaultCodes = new Map();
 const missingCodes = new Map();
 const foundCodes = new Map();
 
+const allFiles = await fs.promises.readdir(absolutePaths.Keyrune);
+
+const allKeyrune = new Set(allFiles.map((name) => path.basename(name, ".svg")));
+const unusedKeyrune = new Set(allKeyrune);
+const hasRarityColors = new Set();
+const hasMythicRare = new Set();
+
 await Promise.allSettled(
   AllSets.map(async (set) => {
     const { keyruneCode, code, name } = set;
-    const keyruneSourcePath = path.join(
-      absolutePaths.Keyrune,
-      `${keyruneCode.toLowerCase()}.svg`
-    );
+    const keyruneBaseFileName = keyruneCode.toLowerCase();
 
-    try {
-      const jsonStats = await fs.promises.lstat(keyruneSourcePath);
-    } catch (error) {
-      if (keyruneCode === "DEFAULT") {
-        updateMap(defaultCodes, { ...set, keyruneCode: defaultSet });
-      } else {
-        updateMap(missingCodes, { ...set, keyruneCode: defaultSet });
-      }
+    if (
+      !set.releaseDate ||
+      set.releaseDate >= parameters.mythicRareIntroduced
+    ) {
+      hasMythicRare.add(set.code);
+      hasRarityColors.add(set.code);
+    } else if (set.releaseDate >= parameters.rarityColorsIntroduced) {
+      hasRarityColors.add(set.code);
+    }
 
+    if (keyruneCode === "DEFAULT") {
+      updateMap(defaultCodes, { ...set, keyruneCode: defaultSet });
       // Nothing to convert
       return null;
     }
 
-    try {
-      const svgOutputPath = path.join(
-        absolutePaths.SVGR,
-        `${keyruneCode.toUpperCase()}.tsx`
-      );
-      const svgCode = await fs.promises.readFile(keyruneSourcePath);
+    if (allKeyrune.has(keyruneBaseFileName)) {
+      try {
+        const svgOutputPath = path.join(
+          absolutePaths.SVGR,
+          `${keyruneCode.toUpperCase()}.tsx`
+        );
+        const svgCode = await fs.promises.readFile(
+          path.join(absolutePaths.Keyrune, `${keyruneBaseFilename}.svg`)
+        );
 
-      const component = await svgr(svgCode, options, {
-        componentName: `Keyrune${keyruneCode}`,
-      });
+        const component = await svgr(svgCode, options, {
+          componentName: `Keyrune${keyruneCode}`,
+        });
 
-      await fs.promises.writeFile(svgOutputPath, component);
-      updateMap(foundCodes, set);
-    } catch (error) {
-      updateMap(missingCodes, { ...set, keyruneCode: defaultSet });
+        await fs.promises.writeFile(svgOutputPath, component);
+        unusedKeyrune.remove(keyruneCode);
+        updateMap(foundCodes, set);
+      } catch (error) {
+        updateMap(missingCodes, { ...set, keyruneCode: defaultSet });
+      }
     }
   })
 );
@@ -198,7 +212,18 @@ if (finalSize < AllSets.length) {
 const indexFile = [
   "/** GENERATED FILE! DO NOT EDIT! */",
   "",
-  `export const PREFIX = "${prefix}";`,
+  `export const PREFIX = "${prefixDefault}";`,
+  "",
+  `export const hasRarityColors = ${JSON.stringify(
+    Array.from(hasRarityColors),
+    null,
+    2
+  )};\n`,
+  `export const hasMythicRare = ${JSON.stringify(
+    Array.from(hasMythicRare),
+    null,
+    2
+  )};\n`,
   formatCommentHeader("KEYRUNE CODES"),
   `${Array.from(foundCodes.entries()).map(formatExports).join("")}`,
 ];
@@ -244,6 +269,32 @@ if (missingCodes.size) {
         "These codes were specified by MTGJSON, but not actually found in the Keyrune repository."
       ),
       Array.from(missingCodes.entries()).map(formatExports).join(""),
+    ]
+  );
+}
+
+if (unusedKeyrune.size()) {
+  const unused = Array.from(unusedKeyrune);
+
+  console.warn(
+    [
+      "The following Keyrune codes were not referenced by MTGJSON.",
+      `They will be exported with the "${prefixKeyrune}" prefix:`,
+      ...unused.map((name) => ` - ${name}`),
+      "\n",
+    ].join("\n")
+  );
+
+  indexFile.push(
+    ...[
+      formatCommentHeader(
+        "UNUSED KEYRUNE CODES",
+        "These codes exist in Keyrune, but none of the sets described by MTGJSON referenced them."
+      ),
+      ...unused.map(
+        (name) =>
+          `export { default as ${prefixKeyrune + name} } from "${name}.svg";`
+      ),
     ]
   );
 }
