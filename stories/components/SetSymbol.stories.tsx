@@ -1,6 +1,7 @@
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 import React from "react";
 
+import RarityGradientSVG from "../../components/RarityGradientSVG";
 import SetSymbol from "../../components/SetSymbol";
 
 export default {
@@ -11,14 +12,41 @@ export default {
   },
 } as ComponentMeta<typeof SetSymbol>;
 
-const Template: ComponentStory<typeof SetSymbol> = (args) => (
-  <SetSymbol {...args} />
+interface TemplateConfig {
+  args: Record<string, unknown>;
+  template: ComponentStory<typeof SetSymbol>;
+}
+
+const singleSet: TemplateConfig = {
+  args: {
+    set: "STH",
+    rarity: "common",
+  },
+  template: (args) => (
+    <>
+      <RarityGradientSVG />
+      <SetSymbol {...args} />
+    </>
+  ),
+};
+
+const TemplateMultiple: ComponentStory<typeof SetSymbol> = (args) => (
+  <>
+    <RarityGradientSVG />
+    <SetSymbol {...args} />
+  </>
 );
 
-export const Common = Template.bind({});
-Common.args = {
-  rarity: "common",
+export const Basic = TemplateSingleSet.bind({});
+Basic.args = {
   set: "INV",
+  rarity: "common",
+};
+
+export const Rarities = TemplateSingleSet.bind({});
+Rarities.args = {
+  set: "STH",
+  rarity: "common",
 };
 
 // export const Secondary = Template.bind({});
