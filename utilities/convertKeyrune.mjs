@@ -286,8 +286,8 @@ if (missingCodes.size) {
 if (unusedKeyrune.size) {
   const unused = Array.from(unusedKeyrune);
 
-  const results = await Promise.allSettled(unused.map(writeSVGR));
-  console.log(results);
+  await Promise.allSettled(unused.map(writeSVGR));
+
   console.warn(
     [
       `${
