@@ -10,7 +10,7 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "types:check": "tsc --pretty --noEmit",
-    "storybook:dev": "start-storybook -p 6006",
+    "storybook:dev": "start-storybook -p 6006 --ci",
     "storybook:build": "build-storybook",
     "prepare": "husky install && npm run cache:data",
     "dev": "next dev",
