@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "cache:clean": "rm -rf ./cache",
+    "clean:cache": "rm -rf ./cache",
     "cache:MTGJSON": "node utilities/cacheMTGJSON.mjs",
     "cache:Keyrune": "node utilities/convertKeyrune.mjs",
     "cache": "npm run cache:MTGJSON && npm run cache:Keyrune",
@@ -12,7 +12,7 @@
     "types:check": "tsc --pretty --noEmit",
     "storybook:dev": "start-storybook -p 6006 --ci",
     "storybook:build": "build-storybook",
-    "prepare": "husky install && npm run cache:data",
+    "prepare": "husky install && npm run cache",
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
