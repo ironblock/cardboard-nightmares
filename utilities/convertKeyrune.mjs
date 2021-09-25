@@ -8,6 +8,10 @@ import { ESLint } from "eslint";
 import parameters from "./SVGR/parameters.mjs";
 import templateWithGradient from "./SVGR/templateWithGradient.mjs";
 
+const replacements = {
+  ...parameters.dualLayerMapping,
+  ...parameters.customMapping,
+};
 const svgr = svgrCore.default;
 
 console.time("Finished in");
@@ -139,6 +143,20 @@ const formatExports = ([primaryKey, sets]) => {
       .join(joinExports)}${paddingExportEnd}} from "./${primaryKey}";`,
   ].join("\n");
 };
+
+const printWarningForList = (codeMap, message) =>
+  console.warn(
+    [
+      message,
+      ...Array.from(codeMap.entries()).map(([primaryKey, sets]) =>
+        Array.from(sets).map((set) => `  - ${formatName(set)}`)
+      ),
+      "\n",
+    ]
+      .flat()
+      .join("\n")
+  );
+const replacedCodes = new Map();
 const defaultCodes = new Map();
 const missingCodes = new Map();
 const foundCodes = new Map();
@@ -153,13 +171,18 @@ const noMythicRare = new Set();
 
 await Promise.allSettled(
   AllSets.map(async (set) => {
-    const { keyruneCode } = set;
+    const { keyruneCode, code } = set;
 
     if (!set.releaseDate || set.releaseDate < parameters.mythicRareIntroduced) {
       noMythicRare.add(set.code);
       noRarityColors.add(set.code);
     } else if (set.releaseDate < parameters.rarityColorsIntroduced) {
       noRarityColors.add(set.code);
+    }
+
+    if (replacements[code]) {
+      updateMap(replacedCodes, { ...set, keyruneCode: replacements[code] });
+      return null;
     }
 
     if (keyruneCode === "DEFAULT") {
@@ -186,7 +209,7 @@ await Promise.allSettled(
 
 let finalSize = 0;
 
-[foundCodes, defaultCodes, missingCodes].forEach((map) => {
+[replacedCodes, foundCodes, defaultCodes, missingCodes].forEach((map) => {
   for (const set of map.values()) {
     finalSize += set.size;
   }
@@ -233,18 +256,12 @@ const indexFile = [
 ];
 
 if (defaultCodes.size) {
-  console.info(
-    [
-      `MTJSON specified the following ${
-        defaultCodes.size === 1 ? "set" : defaultCodes.size + " sets"
-      } should use "DEFAULT" Keyrune icons.`,
-      'These will use "Blank Core Set":',
-      ...Array.from(defaultCodes.get(defaultSet).entries()).map(
-        ([primaryKey, set]) => `  - ${formatName(set)}`
-      ),
-      "\n",
-    ].join("\n")
-  );
+  printWarningForList(defaultCodes, [
+    `MTJSON specified the following ${
+      defaultCodes.size === 1 ? "set" : defaultCodes.size + " sets"
+    } should use "DEFAULT" Keyrune icons.`,
+    'These will use "Blank Core Set":',
+  ]);
 
   indexFile.push(
     ...[
@@ -255,22 +272,14 @@ if (defaultCodes.size) {
 }
 
 if (missingCodes.size) {
-  console.warn(
-    [
-      `MTGJSON specified the following ${
-        missingCodes.size === 1
-          ? "non-existent Keyrune code."
-          : missingCodes.size + "non-existent Keyrune codes."
-      }`,
-      'These will fall back to "Blank Core Set":',
-      ...Array.from(missingCodes.entries()).map(([primaryKey, sets]) =>
-        Array.from(sets).map((set) => `  - ${formatName(set)}`)
-      ),
-      "\n",
-    ]
-      .flat()
-      .join("\n")
-  );
+  printWarningForList(missingCodes, [
+    `MTGJSON specified the following ${
+      missingCodes.size === 1
+        ? "non-existent Keyrune code."
+        : missingCodes.size + "non-existent Keyrune codes."
+    }`,
+    'These will fall back to "Blank Core Set":',
+  ]);
 
   indexFile.push(
     ...[
@@ -279,6 +288,27 @@ if (missingCodes.size) {
         "These codes were specified by MTGJSON, but not actually found in the Keyrune repository."
       ),
       Array.from(missingCodes.entries()).map(formatExports).join(""),
+    ]
+  );
+}
+
+if (replacedCodes.size) {
+  printWarningForList(replacedCodes, [
+    `The user parameters provided in dualLayerMapping and customMapping provided ${
+      replacedCodes.size === 1
+        ? "a single override value"
+        : replacedCodes.size + "override values."
+    }`,
+    "These will be mapped as specified:",
+  ]);
+
+  indexFile.push(
+    ...[
+      formatCommentHeader(
+        "REPLACED CODES",
+        "These codes were manually selected for replacement by the end-user configuration file"
+      ),
+      Array.from(replacedCodes.entries()).map(formatExports).join(""),
     ]
   );
 }

@@ -122,11 +122,11 @@ const results = await eslint.lintFiles([`${cacheDir}/**`]);
 await ESLint.outputFixes(results);
 
 setTimeout(() => {
+  console.info("\n");
   if (downloads.includes(false)) {
     console.error("Failed to download");
     process.exit(1);
   } else {
-    console.log("\n");
     console.timeEnd("Finished in");
     process.exit();
   }
