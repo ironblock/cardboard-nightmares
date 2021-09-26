@@ -36,6 +36,9 @@ export const parameters = {
   customMapping: {
     // Ice Age | White on black is original
     ICE: "ICE2",
+    STX: "XSSM",
+    KHM: "XKLD",
+    XDND: "AFR-BORDER",
   },
   /**
    * Some set symbols are missing from Keyrune, or a better version is available

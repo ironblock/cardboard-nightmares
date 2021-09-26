@@ -172,6 +172,8 @@ const noMythicRare = new Set();
 await Promise.allSettled(
   AllSets.map(async (set) => {
     const { keyruneCode, code } = set;
+    let targetMap;
+    let usedKeyruneCode;
 
     if (!set.releaseDate || set.releaseDate < parameters.mythicRareIntroduced) {
       noMythicRare.add(set.code);
@@ -180,30 +182,35 @@ await Promise.allSettled(
       noRarityColors.add(set.code);
     }
 
-    if (replacements[code]) {
-      updateMap(replacedCodes, { ...set, keyruneCode: replacements[code] });
-      return null;
-    }
-
     if (keyruneCode === "DEFAULT") {
-      updateMap(defaultCodes, { ...set, keyruneCode: defaultSet });
-      // Nothing to convert
-      return null;
-    }
+      targetMap = defaultCodes;
+      usedKeyruneCode = defaultSet;
+    } else {
+      if (replacements[code]) {
+        targetMap = replacedCodes;
+        usedKeyruneCode = replacements[code];
+      } else {
+        targetMap = foundCodes;
+        usedKeyruneCode = keyruneCode;
+      }
 
-    if (allKeyrune.has(keyruneCode)) {
-      try {
-        writeSVGR(keyruneCode);
+      if (allKeyrune.has(usedKeyruneCode)) {
+        try {
+          writeSVGR(usedKeyruneCode);
 
-        unusedKeyrune.delete(keyruneCode);
-
-        return updateMap(foundCodes, set);
-      } catch (error) {
-        console.error(error);
+          unusedKeyrune.delete(usedKeyruneCode);
+        } catch (error) {
+          console.error(error);
+          targetMap = missingCodes;
+          usedKeyruneCode = defaultSet;
+        }
+      } else {
+        targetMap = missingCodes;
+        usedKeyruneCode = defaultSet;
       }
     }
 
-    return updateMap(missingCodes, { ...set, keyruneCode: defaultSet });
+    return updateMap(targetMap, { ...set, keyruneCode: usedKeyruneCode });
   })
 );
 
