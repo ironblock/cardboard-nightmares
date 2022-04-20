@@ -41,7 +41,7 @@ const downloadStatus = await Promise.all(
     try {
       if (stale) {
         console.time(`${consolePrefix} ${resource}`);
-        activeBars[resource] = multibar.create(100, 0, { key });
+        activeBars[resource] = multibar.create(100, 0, { key: resource });
 
         const response = await new Promise((resolve) =>
           https.get(files[resource], resolve)

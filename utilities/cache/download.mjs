@@ -23,23 +23,30 @@ export const getFilePaths = (directory, filename) => ({
  * @param {*} filePaths
  */
 export const determineStale = (filePaths, verbose) => {
-  let stale = false;
+  let stale = true;
 
   Object.values(filePaths).forEach((value) => {
-    const stats = fs.statSync(value);
-    const lastModified = stats.mtimeMs;
+    let stats;
 
-    if (typeof lastModified !== "number") {
-      stale = true;
-      console.warn(`[ MISSING ] - ${path.basename(value)}`);
-    } else if (lastModified < YESTERDAY) {
-      stale = true;
-
+    try {
+      stats = fs.statSync(value);
+    } catch (error) {
       if (verbose) {
-        console.warn(`[  STALE  ] - ${path.basename(value)}`);
+        console.info(`${value} does not exist, will be marked stale`);
       }
+    }
+
+    if (
+      stats &&
+      typeof stats.mtimeMs === "number" &&
+      stats.mtimeMs > YESTERDAY
+    ) {
+      if (verbose) {
+        console.info(`[  FRESH  ] - ${path.basename(value)}`);
+      }
+      stale = false;
     } else if (verbose) {
-      console.info(`[  FRESH  ] - ${path.basename(value)}`);
+      console.info(`[  STALE  ] - ${path.basename(value)}`);
     }
   });
 
