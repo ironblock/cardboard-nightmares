@@ -65,22 +65,53 @@ export const serializedCSS = rarity.reduce((output, name) => {
   return output;
 }, {} as SerializedStyleMap<typeof gradients>);
 
-const NonMemoRarityGradientSVG = () => (
+const NonMemoSetSymbolDefsSVG = () => (
   <svg
     aria-hidden="true"
     focusable="false"
     style={{ width: 0, height: 0, position: "absolute" }}
   >
-    {Object.entries(gradients).map(([name, stops]) => (
-      <linearGradient key={name} id={`${idPrefix}${name}`}>
-        {stops.map((props) => (
-          <stop key={props.offset} {...props} />
-        ))}
-      </linearGradient>
-    ))}
+    <defs>
+      {/* HEAVY WHITE OUTLINE - 8TH EDITION TO M15*/}
+      <filter id={`${idPrefix}-heavy-white-outline`}>
+        <feMorphology
+          in="SourceAlpha"
+          result="expanded"
+          operator="dilate"
+          radius="1"
+        />
+        <feFlood floodColor="white" />
+        <feComposite in2="expanded" operator="in" />
+        <feComposite in="SourceGraphic" />
+      </filter>
+
+      {/* INNER DROP SHADOW - 8TH EDITION TO M15*/}
+      <filter
+        id={`${idPrefix}-inner-drop-shadow`}
+        colorInterpolationFilters="sRGB"
+      >
+        <feDropShadow dx="2" dy="2" stdDeviation="3" floodOpacity="0.5" />
+      </filter>
+
+      {/* OUTER DROP SHADOW - 8TH EDITION TO M15*/}
+      <filter
+        id={`${idPrefix}-outer-drop-shadow`}
+        colorInterpolationFilters="sRGB"
+      >
+        <feDropShadow dx="2" dy="2" stdDeviation="3" floodOpacity="0.5" />
+      </filter>
+
+      {Object.entries(gradients).map(([name, stops]) => (
+        <linearGradient key={name} id={`${idPrefix}${name}`}>
+          {stops.map((props) => (
+            <stop key={props.offset} {...props} />
+          ))}
+        </linearGradient>
+      ))}
+    </defs>
   </svg>
 );
 
-export const RarityGradientSVG = React.memo(NonMemoRarityGradientSVG);
+export const SetSymbolDefsSVG = React.memo(NonMemoSetSymbolDefsSVG);
 
-export default RarityGradientSVG;
+export default SetSymbolDefsSVG;

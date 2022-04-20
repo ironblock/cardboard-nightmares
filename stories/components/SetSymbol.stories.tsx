@@ -1,29 +1,31 @@
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 import React from "react";
 
-import RarityGradientSVG from "../../components/RarityGradientSVG";
 import SetSymbol from "../../components/SetSymbol";
-import { SetsByReleaseDate } from "../../constants/MTGJSON/Sets";
+import SetSymbolDefsSVG from "../../components/SetSymbolDefsSVG";
+import {
+  noMythicRares,
+  noRarityColors,
+  SetsByReleaseDate,
+} from "../../constants/MTGJSON/Sets";
 
 export default {
   title: "Set Symbol",
   component: SetSymbol,
-  argTypes: {
-    backgroundColor: { control: "color" },
-  },
+  argTypes: {},
 } as ComponentMeta<typeof SetSymbol>;
 
 const singleSet: ComponentStory<typeof SetSymbol> = (args) => (
   <>
-    <RarityGradientSVG />
+    <SetSymbolDefsSVG />
     <SetSymbol {...args} />
   </>
 );
 
 const allSets: ComponentStory<typeof SetSymbol> = (args) => (
   <>
-    <RarityGradientSVG />
-    <table>
+    <SetSymbolDefsSVG />
+    <table style={{ textAlign: "center" }}>
       <thead>
         <tr>
           <th>Name</th>
@@ -44,19 +46,55 @@ const allSets: ComponentStory<typeof SetSymbol> = (args) => (
                 <td>{set.name}</td>
                 <td>{set.releaseDate}</td>
                 <td>
-                  <SetSymbol set={set.code} rarity="common" />
+                  <SetSymbol
+                    set={set.code}
+                    original={args.original}
+                    rarity="common"
+                  />
                 </td>
+                {args.original && noRarityColors.has(set.code) ? (
+                  <>
+                    <td>--</td>
+                    <td>--</td>
+                  </>
+                ) : (
+                  <>
+                    <td>
+                      <SetSymbol
+                        set={set.code}
+                        original={args.original}
+                        rarity="uncommon"
+                      />
+                    </td>
+                    <td>
+                      <SetSymbol
+                        set={set.code}
+                        original={args.original}
+                        rarity="rare"
+                      />
+                    </td>
+                  </>
+                )}
+
+                {args.original && noMythicRares.has(set.code) ? (
+                  <>
+                    <td>--</td>
+                  </>
+                ) : (
+                  <td>
+                    <SetSymbol
+                      set={set.code}
+                      original={args.original}
+                      rarity="mythic"
+                    />
+                  </td>
+                )}
                 <td>
-                  <SetSymbol set={set.code} rarity="uncommon" />
-                </td>
-                <td>
-                  <SetSymbol set={set.code} rarity="rare" />
-                </td>
-                <td>
-                  <SetSymbol set={set.code} rarity="mythic" />
-                </td>
-                <td>
-                  <SetSymbol set={set.code} rarity="timeshifted" />
+                  <SetSymbol
+                    set={set.code}
+                    original={args.original}
+                    rarity="timeshifted"
+                  />
                 </td>
               </tr>
             ))
@@ -80,7 +118,10 @@ Rarities.args = {
 };
 
 export const AllSets = allSets.bind({});
-AllSets.args = {};
+AllSets.args = {
+  original: true,
+};
+AllSets.parameters = { controls: { include: ["original"] } };
 
 // export const Secondary = Template.bind({});
 // Secondary.args = {
