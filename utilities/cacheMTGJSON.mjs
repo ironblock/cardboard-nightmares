@@ -80,7 +80,9 @@ const downloadStatus = await Promise.all(
           response.on("data", (chunk) => {
             received += chunk.length;
             rawData += chunk;
-            activeBars[resource].update((received / contentLength) * 100);
+            if (activeBars[resource]) {
+              activeBars[resource].update((received / contentLength) * 100);
+            }
           });
 
           response.on("end", () => {
