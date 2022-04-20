@@ -1,6 +1,14 @@
 import SetList from "../../cache/MTGJSON/SetList";
 import { SetType } from "../../types/MTGJSON/Enums";
 import { KeyruneCode, SetCode, SetShape } from "../../types/MTGJSON/Sets";
+/**
+ * Prior to the release of Exodus (1998), all set symbols were black and white
+ */
+const RARITY_COLORS_INTRODUCED = "1998-06-15";
+/**
+ * Mythic Rare didn't exist prior to Shards of Alara (2008)
+ */
+const MYTHIC_RARE_INTRODUCED = "2008-10-03";
 
 export type CodeMap = { [key in SetCode]: SetShape };
 export type TypeMap = { [key in SetType]: SetShape };
@@ -12,10 +20,20 @@ const byType: Partial<TypeMap> = {};
 const byKeyruneCode: Partial<KeyruneCodeMap> = {};
 const byReleaseDate: Partial<ReleaseDateMap> = {};
 
+export const noMythicRares: Set<SetCode> = new Set();
+export const noRarityColors: Set<SetCode> = new Set();
+
 for (let i = 0; i < SetList.data.length; i++) {
   byCode[SetList.data[i].code] = SetList.data[i];
   byType[SetList.data[i].type] = SetList.data[i];
   byKeyruneCode[SetList.data[i].keyruneCode] = SetList.data[i];
+
+  if (SetList.data[i].releaseDate < RARITY_COLORS_INTRODUCED) {
+    noRarityColors.add(SetList.data[i].code);
+    noMythicRares.add(SetList.data[i].code);
+  } else if (SetList.data[i].releaseDate < MYTHIC_RARE_INTRODUCED) {
+    noMythicRares.add(SetList.data[i].code);
+  }
 
   if (Array.isArray(typeof byReleaseDate[SetList.data[i].releaseDate])) {
     byReleaseDate[SetList.data[i].releaseDate]?.push(SetList.data[i]);
