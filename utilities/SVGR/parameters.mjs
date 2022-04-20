@@ -1,13 +1,5 @@
 export const parameters = {
   /**
-   * Prior to the release of Exodus (1998), all set symbols were black and white
-   */
-  rarityColorsIntroduced: "1998-06-15",
-  /**
-   * Mythic Rare didn't exist prior to Shards of Alara (2008)
-   */
-  mythicRareIntroduced: "2008-10-03",
-  /**
    * Some set symbols use a white "base" layer with a black border, rather than
    * the default black "base" with white border.
    *

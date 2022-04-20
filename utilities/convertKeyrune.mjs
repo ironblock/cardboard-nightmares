@@ -166,21 +166,12 @@ const allKeyrune = new Set(
   allFiles.map((name) => path.basename(name, ".svg").toUpperCase())
 );
 const unusedKeyrune = new Set(allKeyrune);
-const noRarityColors = new Set();
-const noMythicRare = new Set();
 
 await Promise.allSettled(
   AllSets.map(async (set) => {
     const { keyruneCode, code } = set;
     let targetMap;
     let usedKeyruneCode;
-
-    if (!set.releaseDate || set.releaseDate < parameters.mythicRareIntroduced) {
-      noMythicRare.add(set.code);
-      noRarityColors.add(set.code);
-    } else if (set.releaseDate < parameters.rarityColorsIntroduced) {
-      noRarityColors.add(set.code);
-    }
 
     if (keyruneCode === "DEFAULT") {
       targetMap = defaultCodes;
@@ -248,16 +239,6 @@ const indexFile = [
   "",
   `export const PREFIX = "${prefixDefault}";`,
   "",
-  `export const noRarityColors = new Set(${JSON.stringify(
-    Array.from(noRarityColors),
-    null,
-    2
-  )});\n`,
-  `export const noMythicRare = new Set(${JSON.stringify(
-    Array.from(noMythicRare),
-    null,
-    2
-  )});\n`,
   formatCommentHeader("KEYRUNE CODES"),
   `${Array.from(foundCodes.entries()).map(formatExports).join("")}`,
 ];
