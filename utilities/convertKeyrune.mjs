@@ -12,7 +12,7 @@ const replacements = {
   ...parameters.dualLayerMapping,
   ...parameters.customMapping,
 };
-const svgr = svgrCore.default;
+const { transform } = svgrCore;
 
 console.time("Finished in");
 console.log("Converting Keyrune SVG files...\n");
@@ -69,7 +69,7 @@ const writeSVGR = async (keyruneCode) => {
 
   const svgCode = await fs.promises.readFile(svgInputPath);
 
-  const component = await svgr(svgCode, options, {
+  const component = await transform(svgCode, options, {
     componentName: `${prefixKeyrune}${sanitize(keyruneCode)}`,
   });
 

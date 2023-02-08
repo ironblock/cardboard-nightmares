@@ -1,17 +1,9 @@
 function templateWithGradient(
-  { template },
-  opts,
-  { imports, interfaces, componentName, props, jsx, exports }
+  { imports, interfaces, componentName, props, jsx, exports },
+  { tpl }
 ) {
-  const plugins = ["svgo", "jsx", "prettier"];
-
-  if (opts.typescript) {
-    plugins.push("typescript");
-  }
-
-  const typeScriptTpl = template.smart({ plugins });
-
   let allowAdditionalChildren;
+
   try {
     allowAdditionalChildren = {
       type: "JSXExpressionContainer",
@@ -28,6 +20,7 @@ function templateWithGradient(
         computed: false,
       },
     };
+
     jsx.children.unshift(allowAdditionalChildren);
   } catch (error) {
     console.error(error);
@@ -36,7 +29,7 @@ function templateWithGradient(
   let output;
 
   try {
-    output = typeScriptTpl.ast`${imports}
+    output = tpl`${imports}
 
     ${interfaces}
 
