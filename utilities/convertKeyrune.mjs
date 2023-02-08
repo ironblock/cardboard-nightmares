@@ -64,9 +64,15 @@ const options = {
 const sanitize = (string) => string.replace(/-|_/gi, "");
 
 const writeSVGR = async (keyruneCode) => {
-  const svgOutputPath = path.join(absolutePaths.SVGR, `${keyruneCode}.tsx`);
-  const svgInputPath = path.join(absolutePaths.Keyrune, `${keyruneCode}.svg`);
-
+  const svgOutputPath = path.join(
+    absolutePaths.SVGR,
+    `${keyruneCode.toUpperCase()}.tsx`
+  );
+  const svgInputPath = path.join(
+    absolutePaths.Keyrune,
+    `${keyruneCode.toLowerCase()}.svg`
+  );
+  console.log(svgInputPath);
   const svgCode = await fs.promises.readFile(svgInputPath);
 
   const component = await transform(svgCode, options, {
