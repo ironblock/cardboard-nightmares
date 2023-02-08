@@ -72,7 +72,7 @@ const writeSVGR = async (keyruneCode) => {
     absolutePaths.Keyrune,
     `${keyruneCode.toLowerCase()}.svg`
   );
-  console.log(svgInputPath);
+
   const svgCode = await fs.promises.readFile(svgInputPath);
 
   const component = await transform(svgCode, options, {
@@ -349,4 +349,4 @@ const indexPath = path.join(absolutePaths.SVGR, "index.tsx");
 await fs.promises.writeFile(indexPath, indexFile.join("\n"));
 
 console.time("Finished in");
-process.exit();
+process.exit(0);
