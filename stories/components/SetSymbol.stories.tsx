@@ -6,6 +6,7 @@ import SetSymbolDefsSVG from "../../components/SetSymbolDefsSVG";
 import {
   noMythicRares,
   noRarityColors,
+  eighthEditionToM15,
   SetsByReleaseDate,
 } from "../../constants/MTGJSON/Sets";
 
@@ -41,63 +42,51 @@ const allSets: ComponentStory<typeof SetSymbol> = (args) => (
         {Object.entries(SetsByReleaseDate)
           .sort(([dateA], [dateB]) => (dateA > dateB ? 1 : -1))
           .map(([key, sets]) =>
-            sets.map((set) => (
-              <tr key={set.code}>
-                <td>{set.name}</td>
-                <td>{set.releaseDate}</td>
-                <td>
-                  <SetSymbol
-                    set={set.code}
-                    original={args.original}
-                    rarity="common"
-                  />
-                </td>
-                {args.original && noRarityColors.has(set.code) ? (
-                  <>
-                    <td>--</td>
-                    <td>--</td>
-                  </>
-                ) : (
-                  <>
-                    <td>
-                      <SetSymbol
-                        set={set.code}
-                        original={args.original}
-                        rarity="uncommon"
-                      />
-                    </td>
-                    <td>
-                      <SetSymbol
-                        set={set.code}
-                        original={args.original}
-                        rarity="rare"
-                      />
-                    </td>
-                  </>
-                )}
+            sets.map((set) => {
+              const commonProps = {
+                eigthEditionToM15: eighthEditionToM15.has(set.code),
+                set: set.code,
+                original: args.original,
+              };
 
-                {args.original && noMythicRares.has(set.code) ? (
-                  <>
-                    <td>--</td>
-                  </>
-                ) : (
+              return (
+                <tr key={set.code}>
+                  <td>{set.name}</td>
+                  <td>{set.releaseDate}</td>
                   <td>
-                    <SetSymbol
-                      set={set.code}
-                      original={args.original}
-                      rarity="mythic"
-                    />
+                    <SetSymbol {...commonProps} rarity="common" />
                   </td>
-                )}
-                <td>
-                  <SetSymbol
-                    set={set.code}
-                    original={args.original}
-                    rarity="timeshifted"
-                  />
-                </td>
-              </tr>
-            ))
+                  {args.original && noRarityColors.has(set.code) ? (
+                    <>
+                      <td>--</td>
+                      <td>--</td>
+                    </>
+                  ) : (
+                    <>
+                      <td>
+                        <SetSymbol {...commonProps} rarity="uncommon" />
+                      </td>
+                      <td>
+                        <SetSymbol {...commonProps} rarity="rare" />
+                      </td>
+                    </>
+                  )}
+
+                  {args.original && noMythicRares.has(set.code) ? (
+                    <>
+                      <td>--</td>
+                    </>
+                  ) : (
+                    <td>
+                      <SetSymbol {...commonProps} rarity="mythic" />
+                    </td>
+                  )}
+                  <td>
+                    <SetSymbol {...commonProps} rarity="timeshifted" />
+                  </td>
+                </tr>
+              );
+            })
           )
           .flat()}
       </tbody>

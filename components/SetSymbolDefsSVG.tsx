@@ -16,7 +16,13 @@ export interface GradientStopProps {
   offset: string;
 }
 
-export const idPrefix = "gradient-";
+export const gradientPrefix = "gradient-";
+export const eighthEditionToM15Filters = {
+  outline: "filter-heavy-white-outline",
+  innerShadow: "filter-inner-drop-shadow",
+  outerShadow: "filter-outer-drop-shadow",
+};
+
 export const gradients: Record<Rarity, GradientStopProps[]> = {
   common: [
     { stopColor: "#302b2c", offset: "1%" },
@@ -58,7 +64,7 @@ export const gradients: Record<Rarity, GradientStopProps[]> = {
 export const serializedCSS = rarity.reduce((output, name) => {
   output[name] = css`
     path {
-      fill: url(#${idPrefix + name});
+      fill: url(#${gradientPrefix + name});
     }
   `;
 
@@ -73,7 +79,7 @@ const NonMemoSetSymbolDefsSVG = () => (
   >
     <defs>
       {/* HEAVY WHITE OUTLINE - 8TH EDITION TO M15*/}
-      <filter id={`${idPrefix}-heavy-white-outline`}>
+      <filter id={eighthEditionToM15Filters.outline}>
         <feMorphology
           in="SourceAlpha"
           result="expanded"
@@ -87,7 +93,7 @@ const NonMemoSetSymbolDefsSVG = () => (
 
       {/* INNER DROP SHADOW - 8TH EDITION TO M15*/}
       <filter
-        id={`${idPrefix}-inner-drop-shadow`}
+        id={eighthEditionToM15Filters.innerShadow}
         colorInterpolationFilters="sRGB"
       >
         <feDropShadow dx="2" dy="2" stdDeviation="3" floodOpacity="0.5" />
@@ -95,14 +101,14 @@ const NonMemoSetSymbolDefsSVG = () => (
 
       {/* OUTER DROP SHADOW - 8TH EDITION TO M15*/}
       <filter
-        id={`${idPrefix}-outer-drop-shadow`}
+        id={eighthEditionToM15Filters.outerShadow}
         colorInterpolationFilters="sRGB"
       >
         <feDropShadow dx="2" dy="2" stdDeviation="3" floodOpacity="0.5" />
       </filter>
 
       {Object.entries(gradients).map(([name, stops]) => (
-        <linearGradient key={name} id={`${idPrefix}${name}`}>
+        <linearGradient key={name} id={`${gradientPrefix}${name}`}>
           {stops.map((props) => (
             <stop key={props.offset} {...props} />
           ))}
