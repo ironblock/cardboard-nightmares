@@ -36,6 +36,8 @@
     "@emotion/eslint-plugin": "^11.10.0",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
+    "dexie": "^3.2.3",
+    "dexie-react-hooks": "^1.1.3",
     "keyrune": "andrewgioia/keyrune",
     "next": "^13.3.4",
     "react": "^18.2.0",
