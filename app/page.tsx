@@ -5,6 +5,8 @@ import { getBulkCardDataByType } from "../api/Scryfall";
 import { db } from "../database/Scryfall";
 import { UUID } from "../types/Scryfall/Attributes";
 import { CompleteCard } from "../types/Scryfall/Card";
+import Image from "next/image";
+import { SmallCardImage } from "../components/CardImage";
 
 async function populateDatabase() {
   const scryfallCardData = await getBulkCardDataByType("unique_artwork");
@@ -85,9 +87,29 @@ export default function Page() {
 
   return (
     <h1>
-      Hello, Next.js!
       <button onClick={populateDatabase}>Populate Database</button>
+      <hr />
       <textarea onChange={handleDeckListChange} />
+      <hr />
+      {Object.values(deck).map(({ card }) => {
+        if (card.image_uris) {
+          return (
+            <SmallCardImage
+              key={card.id}
+              uris={card.image_uris}
+              alt={card.name}
+            />
+          );
+        } else if (card.card_faces) {
+          return (
+            <SmallCardImage
+              key={card.id}
+              uris={card.card_faces[0].image_uris}
+              alt={card.card_faces[0].name}
+            />
+          );
+        }
+      })}
     </h1>
   );
 }

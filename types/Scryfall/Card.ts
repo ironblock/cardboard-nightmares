@@ -5,6 +5,7 @@ import {
   Colors,
   Games,
   ImageURIs,
+  Keyword,
 } from "./Attributes";
 
 export interface CoreFields {
@@ -83,7 +84,7 @@ export interface GameplayFields {
   // This card’s hand modifier, if it is Vanguard card. This value will contain a delta, such as -1.
   hand_modifier?: string;
   // An array of keywords that this card uses, such as 'Flying' and 'Cumulative upkeep'.
-  keywords: Array;
+  keywords: Keyword[];
   // A code for this card’s layout.
   layout: string;
   // An object describing the legality of this card across play formats. Possible legalities are legal, not_legal, restricted, and banned.
@@ -295,7 +296,7 @@ export interface CardFace {
   // An object providing URIs to imagery for this face, if this is a
   // double-sided card. If this card is not double-sided, then the image_uris
   // property will be part of the parent object instead.
-  image_uris?: Object;
+  image_uris?: ImageURIs;
 
   // The layout of this card face, if the card is reversible.
   layout?: string;
