@@ -8,7 +8,7 @@ export class ScryfallDatabase extends Dexie {
   constructor() {
     super("ScryfallDatabase");
     this.version(1).stores({
-      cards: "++id", // Primary key and indexed props
+      cards: "++id, [name+set]", // Primary key and indexed props
     });
   }
 }
