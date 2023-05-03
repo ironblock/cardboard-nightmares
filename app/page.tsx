@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getBulkCardDataByType } from "../api/Scryfall";
 import { db } from "../database/Scryfall";
 import { UUID } from "../types/Scryfall/Attributes";
@@ -85,10 +85,12 @@ export default function Page() {
     setDeck(await findAllCardsInDeckList(parseDeckList(event)));
   }
 
+  useEffect(() => {
+    populateDatabase();
+  }, []);
+
   return (
     <h1>
-      <button onClick={populateDatabase}>Populate Database</button>
-      <hr />
       <textarea onChange={handleDeckListChange} />
       <hr />
       {Object.values(deck).map(({ card }) => {
