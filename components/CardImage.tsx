@@ -1,8 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import { CardImageType, ImageURIs } from "../types/Scryfall/Attributes";
 import { css } from "@emotion/react";
+import Image from "next/image";
+
+import { CardImageType, ImageURIs } from "../types/Scryfall/Attributes";
 
 export const ScryfallImageSizes: Record<
   CardImageType,

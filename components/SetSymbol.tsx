@@ -1,15 +1,15 @@
 import { css, ClassNames } from "@emotion/react";
 import React, { RefAttributes } from "react";
 
+import {
+  eighthEditionToM15Filters,
+  serializedCSS as rarityCSS,
+} from "./SetSymbolDefsSVG";
 import * as Keyrune from "../cache/SVGR";
 import { noMythicRares, noRarityColors } from "../constants/MTGJSON/Sets";
 import { Rarity } from "../types/MTGJSON/Enums";
 import { SetCode } from "../types/MTGJSON/Sets";
 import extractClassNames from "../utilities/emotion/extractClassNames";
-import {
-  eighthEditionToM15Filters,
-  serializedCSS as rarityCSS,
-} from "./SetSymbolDefsSVG";
 
 export const serializedCSS = {
   base: css`

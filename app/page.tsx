@@ -15,7 +15,6 @@ import {
   DeckListEntry,
   DeckOrder,
 } from "../types/Decks";
-import { UUID } from "../types/Scryfall/Attributes";
 import { CompleteCard } from "../types/Scryfall/Card";
 import { FisherYatesShuffle, expandDeck } from "../utilities/cards/shuffle";
 
