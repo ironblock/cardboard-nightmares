@@ -37,7 +37,7 @@ export const ScryfallImageSizes: Record<
 
 export interface CardImageProps {
   kind: CardImageType;
-  uris: ImageURIs;
+  uris?: ImageURIs;
   alt: string;
 }
 export type PreTypedCardImageProps = Omit<CardImageProps, "kind">;

@@ -29,7 +29,7 @@ async function populateDatabase() {
   }
 }
 
-export const ArenaExportSyntax = /(\d*)S?\s*(.+)\s+\((.*)\)\s(\d*)/;
+const ArenaExportSyntax = /(\d*)S?\s*(.+)\s+\((.*)\)\s(\d*)/;
 
 function parseDeckList(
   event: React.ChangeEvent<HTMLTextAreaElement>
@@ -43,7 +43,7 @@ function parseDeckList(
     if (match) {
       deckList.push({
         name,
-        set: set.toLowerCase(),
+        set: set.toLowerCase() as Lowercase<string>,
         collectorNumber,
         quantity: Number(quantityString),
       });

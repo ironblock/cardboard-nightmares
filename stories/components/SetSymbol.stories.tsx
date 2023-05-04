@@ -9,6 +9,7 @@ import {
   eighthEditionToM15,
   SetsByReleaseDate,
 } from "../../constants/MTGJSON/Sets";
+import { SetCode } from "../../types/MTGJSON/Sets";
 
 export default {
   title: "Set Symbol",
@@ -43,20 +44,21 @@ const allSets: ComponentStory<typeof SetSymbol> = (args) => (
           .sort(([dateA], [dateB]) => (dateA > dateB ? 1 : -1))
           .map(([key, sets]) =>
             sets.map((set) => {
+              const setCode = set.code as SetCode;
               const commonProps = {
-                eigthEditionToM15: eighthEditionToM15.has(set.code),
-                set: set.code,
+                eigthEditionToM15: eighthEditionToM15.has(set.code as SetCode),
+                set: setCode,
                 original: args.original,
               };
 
               return (
-                <tr key={set.code}>
+                <tr key={setCode}>
                   <td>{set.name}</td>
                   <td>{set.releaseDate}</td>
                   <td>
                     <SetSymbol {...commonProps} rarity="common" />
                   </td>
-                  {args.original && noRarityColors.has(set.code) ? (
+                  {args.original && noRarityColors.has(setCode) ? (
                     <>
                       <td>--</td>
                       <td>--</td>
@@ -72,7 +74,7 @@ const allSets: ComponentStory<typeof SetSymbol> = (args) => (
                     </>
                   )}
 
-                  {args.original && noMythicRares.has(set.code) ? (
+                  {args.original && noMythicRares.has(setCode) ? (
                     <>
                       <td>--</td>
                     </>

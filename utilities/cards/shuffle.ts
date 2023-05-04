@@ -16,7 +16,7 @@ export function expandDeck(deck: DeckDetails): DeckOrder {
 
   for (const [id, { quantity }] of Object.entries(deck)) {
     for (let q = 0; q < quantity; q++) {
-      expandedDeck.push([cardCount, id]);
+      expandedDeck.push([cardCount, id as UUID]);
       cardCount++;
     }
   }

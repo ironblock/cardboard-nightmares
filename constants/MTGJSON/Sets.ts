@@ -28,9 +28,9 @@ const byType: Partial<TypeMap> = {};
 const byKeyruneCode: Partial<KeyruneCodeMap> = {};
 const byReleaseDate: Partial<ReleaseDateMap> = {};
 
-export const noMythicRares: Set<SetCode> = new Set();
-export const noRarityColors: Set<SetCode> = new Set();
-export const eighthEditionToM15: Set<SetCode> = new Set();
+export const noMythicRares: Set<Partial<SetCode>> = new Set();
+export const noRarityColors: Set<Partial<SetCode>> = new Set();
+export const eighthEditionToM15: Set<Partial<SetCode>> = new Set();
 
 for (let i = 0; i < SetList.data.length; i++) {
   byCode[SetList.data[i].code] = SetList.data[i];
