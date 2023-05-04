@@ -1,12 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
+
 import { getBulkCardDataByType } from "../api/Scryfall";
+import { SmallCardImage } from "../components/CardImage";
 import { db } from "../database/Scryfall";
+import { DeckDetails, DeckList, DeckListEntry } from "../types/Decks";
 import { UUID } from "../types/Scryfall/Attributes";
 import { CompleteCard } from "../types/Scryfall/Card";
-import Image from "next/image";
-import { SmallCardImage } from "../components/CardImage";
+import { FisherYatesShuffle, expandDeck } from "../utilities/cards/shuffle";
 
 async function populateDatabase() {
   const scryfallCardData = await getBulkCardDataByType("unique_artwork");
@@ -14,17 +17,6 @@ async function populateDatabase() {
 }
 
 export const ArenaExportSyntax = /(\d*)S?\s*(.+)\s+\((.*)\)\s(\d*)/;
-export interface DeckListEntry {
-  quantity: number;
-  name: string;
-  set?: string;
-  collectorNumber?: number;
-}
-export type DeckList = DeckListEntry[];
-export type DeckDetails = Record<
-  UUID,
-  { card: CompleteCard; quantity: number }
->;
 
 function parseDeckList(
   event: React.ChangeEvent<HTMLTextAreaElement>
@@ -78,11 +70,19 @@ async function findAllCardsInDeckList(
 
 export default function Page() {
   const [deck, setDeck] = useState<DeckDetails>({});
+  const [shuffle, setShuffle] = useState<UUID[]>([]);
 
   async function handleDeckListChange(
     event: React.ChangeEvent<HTMLTextAreaElement>
   ) {
-    setDeck(await findAllCardsInDeckList(parseDeckList(event)));
+    const updatedDeck = await findAllCardsInDeckList(parseDeckList(event));
+
+    setDeck(updatedDeck);
+    setShuffle(expandDeck(updatedDeck));
+  }
+
+  function handleShuffle() {
+    setShuffle(FisherYatesShuffle(shuffle));
   }
 
   useEffect(() => {
@@ -90,14 +90,20 @@ export default function Page() {
   }, []);
 
   return (
-    <h1>
+    <div>
+      <h1>Import Deck</h1>
+      <p>Export deck on Archidekt, pick "Copy to Arena", paste result here:</p>
       <textarea onChange={handleDeckListChange} />
       <hr />
-      {Object.values(deck).map(({ card }) => {
+      <button onClick={handleShuffle}>Shuffle</button>
+      <hr />
+      {shuffle.map((id, index) => {
+        const card = deck[id].card;
+
         if (card.image_uris) {
           return (
             <SmallCardImage
-              key={card.id}
+              key={index}
               uris={card.image_uris}
               alt={card.name}
             />
@@ -105,13 +111,13 @@ export default function Page() {
         } else if (card.card_faces) {
           return (
             <SmallCardImage
-              key={card.id}
+              key={index}
               uris={card.card_faces[0].image_uris}
               alt={card.card_faces[0].name}
             />
           );
         }
       })}
-    </h1>
+    </div>
   );
 }
