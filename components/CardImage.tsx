@@ -49,7 +49,7 @@ export const CardImageStyles = css`
   border: 0.05rem inset rgba(22, 22, 22, 0.66);
 `;
 
-export function CardImage({ kind, uris, alt }: CardImageProps) {
+export function CardImage({ kind, uris, alt, ...rest }: CardImageProps) {
   return (
     <Image
       css={CardImageStyles}
@@ -57,6 +57,7 @@ export function CardImage({ kind, uris, alt }: CardImageProps) {
       width={ScryfallImageSizes[kind][0]}
       height={ScryfallImageSizes[kind][1]}
       alt={alt}
+      {...rest}
     />
   );
 }

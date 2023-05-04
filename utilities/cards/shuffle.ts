@@ -1,4 +1,4 @@
-import { DeckDetails, DeckList } from "../../types/Decks";
+import { DeckDetails, DeckList, DeckOrder } from "../../types/Decks";
 import { UUID } from "../../types/Scryfall/Attributes";
 
 export function FisherYatesShuffle<T>(array: T[]) {
@@ -10,11 +10,14 @@ export function FisherYatesShuffle<T>(array: T[]) {
   return array;
 }
 
-export function expandDeck(deck: DeckDetails) {
-  const expandedDeck: UUID[] = [];
+export function expandDeck(deck: DeckDetails): DeckOrder {
+  const expandedDeck: DeckOrder = [];
+  let cardCount = 1;
+
   for (const [id, { quantity }] of Object.entries(deck)) {
-    for (let i = 0; i < quantity; i++) {
-      expandedDeck.push(id);
+    for (let q = 0; q < quantity; q++) {
+      expandedDeck.push([cardCount, id]);
+      cardCount++;
     }
   }
 

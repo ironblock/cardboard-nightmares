@@ -235,7 +235,7 @@ export interface PrintFields {
   set_uri: URI;
 
   // This card’s set code.
-  set: string;
+  set: Lowercase<string>;
 
   // This card’s Set object UUID.
   set_id: string;

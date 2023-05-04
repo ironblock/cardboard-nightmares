@@ -1,6 +1,8 @@
 import { URI } from "../types/Scryfall/Attributes";
 import { CompleteCard } from "../types/Scryfall/Card";
 
+const SCRYFALL_CACHE = "scryfall-cache";
+
 export interface BulkDataEndpoint {
   object: "bulk_data";
   id: string;
@@ -32,15 +34,9 @@ export async function getBulkDataOptions(): Promise<BulkDataOptionsResponse> {
   return (await fetch("https://api.scryfall.com/bulk-data"))?.json();
 }
 
-export async function getBulkCardData(
-  bulkDataEndpoint: BulkDataEndpoint
-): Promise<CompleteCard[]> {
-  return (await fetch(bulkDataEndpoint.download_uri))?.json();
-}
-
-export async function getBulkCardDataByType(
+export async function getUriForBulkDataType(
   bulkDataType: BulkDataType
-): Promise<CompleteCard[]> {
+): Promise<URI> {
   const bulkDataOptions = await getBulkDataOptions();
   const bulkDataEndpoint = bulkDataOptions.data.find(
     (bulkDataEndpoint) => bulkDataEndpoint.type === bulkDataType
@@ -48,5 +44,28 @@ export async function getBulkCardDataByType(
   if (!bulkDataEndpoint) {
     throw new Error(`No bulk data endpoint found for ${bulkDataType}`);
   }
-  return getBulkCardData(bulkDataEndpoint);
+  return bulkDataEndpoint.download_uri;
+}
+
+export async function getBulkCardDataByType(
+  bulkDataType: BulkDataType
+): Promise<CompleteCard[]> {
+  const [cache, uri] = await Promise.all([
+    caches.open(SCRYFALL_CACHE),
+    getUriForBulkDataType(bulkDataType),
+  ]);
+
+  cache.add(uri);
+  return (await fetch(uri)).json();
+}
+
+export async function isBulkCardDataCachedForType(
+  bulkDataType: BulkDataType
+): Promise<boolean> {
+  const [cache, uri] = await Promise.all([
+    caches.open(SCRYFALL_CACHE),
+    getUriForBulkDataType(bulkDataType),
+  ]);
+
+  return Boolean(await cache.match(uri));
 }

@@ -4,11 +4,13 @@ import { CompleteCard } from "./Scryfall/Card";
 export interface DeckListEntry {
   quantity: number;
   name: string;
-  set?: string;
-  collectorNumber?: number;
+  set?: Lowercase<string>;
+  collectorNumber?: string;
 }
 export type DeckList = DeckListEntry[];
 export type DeckDetails = Record<
   UUID,
   { card: CompleteCard; quantity: number }
 >;
+
+export type DeckOrder = [number, UUID][];
