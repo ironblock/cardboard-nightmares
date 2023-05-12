@@ -10,6 +10,7 @@ module.exports = {
   compiler: {
     emotion: true,
   },
+  swcMinify: true,
   images: {
     remotePatterns: [
       {
